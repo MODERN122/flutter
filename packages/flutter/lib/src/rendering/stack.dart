@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:math' as math;
-import 'dart:ui' show lerpDouble, hashValues;
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart';
 
@@ -164,7 +164,7 @@ class RelativeRect {
   }
 
   @override
-  int get hashCode => hashValues(left, top, right, bottom);
+  int get hashCode => Object.hash(left, top, right, bottom);
 
   @override
   String toString() => 'RelativeRect.fromLTRB(${left.toStringAsFixed(1)}, ${top.toStringAsFixed(1)}, ${right.toStringAsFixed(1)}, ${bottom.toStringAsFixed(1)})';
@@ -496,7 +496,7 @@ class RenderStack extends RenderBox
 
     child.layout(childConstraints, parentUsesSize: true);
 
-    late final double x;
+    final double x;
     if (childParentData.left != null) {
       x = childParentData.left!;
     } else if (childParentData.right != null) {
@@ -508,7 +508,7 @@ class RenderStack extends RenderBox
     if (x < 0.0 || x + child.size.width > size.width)
       hasVisualOverflow = true;
 
-    late final double y;
+    final double y;
     if (childParentData.top != null) {
       y = childParentData.top!;
     } else if (childParentData.bottom != null) {
@@ -728,9 +728,9 @@ class RenderIndexedStack extends RenderStack {
     return result.addWithPaintOffset(
       offset: childParentData.offset,
       position: position,
-      hitTest: (BoxHitTestResult result, Offset? transformed) {
+      hitTest: (BoxHitTestResult result, Offset transformed) {
         assert(transformed == position - childParentData.offset);
-        return child.hitTest(result, position: transformed!);
+        return child.hitTest(result, position: transformed);
       },
     );
   }
@@ -748,5 +748,21 @@ class RenderIndexedStack extends RenderStack {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(IntProperty('index', index));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    final List<DiagnosticsNode> children = <DiagnosticsNode>[];
+    int i = 0;
+    RenderObject? child = firstChild;
+    while (child != null) {
+      children.add(child.toDiagnosticsNode(
+        name: 'child ${i + 1}',
+        style: i != index! ? DiagnosticsTreeStyle.offstage : null,
+      ));
+      child = (child.parentData! as StackParentData).nextSibling;
+      i += 1;
+    }
+    return children;
   }
 }

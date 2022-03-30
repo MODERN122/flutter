@@ -59,7 +59,7 @@ class FakeAndroidViewController implements AndroidViewController {
   final int viewId;
 
   @override
-  Offset Function(Offset position)? pointTransformer;
+  late PointTransformer pointTransformer;
 
   @override
   Future<void> dispatchPointerEvent(PointerEvent event) async {
@@ -96,9 +96,6 @@ class FakeAndroidViewController implements AndroidViewController {
   @override
   void addOnPlatformViewCreatedListener(PlatformViewCreatedCallback listener) =>
       throw UnimplementedError();
-
-  @override
-  int get id => throw UnimplementedError();
 
   @override
   void removeOnPlatformViewCreatedListener(PlatformViewCreatedCallback listener) {
@@ -150,7 +147,7 @@ class FakeAndroidPlatformViewsController {
   void invokeViewFocused(int viewId) {
     final MethodCodec codec = SystemChannels.platform_views.codec;
     final ByteData data = codec.encodeMethodCall(MethodCall('viewFocused', viewId));
-    ServicesBinding.instance!.defaultBinaryMessenger
+    ServicesBinding.instance.defaultBinaryMessenger
         .handlePlatformMessage(SystemChannels.platform_views.name, data, (ByteData? data) {});
   }
 
@@ -506,7 +503,14 @@ class FakeAndroidPlatformView {
   }
 
   @override
-  int get hashCode => hashValues(id, type, hashList(creationParams), size, layoutDirection, hybrid);
+  int get hashCode => Object.hash(
+    id,
+    type,
+    creationParams == null ? null : Object.hashAll(creationParams!),
+    size,
+    layoutDirection,
+    hybrid,
+  );
 
   @override
   String toString() {
@@ -532,7 +536,7 @@ class FakeAndroidMotionEvent {
   }
 
   @override
-  int get hashCode => hashValues(action, hashList(pointers), hashList(pointerIds));
+  int get hashCode => Object.hash(action, Object.hashAll(pointers), Object.hashAll(pointerIds));
 
   @override
   String toString() {
@@ -559,7 +563,7 @@ class FakeUiKitView {
   }
 
   @override
-  int get hashCode => hashValues(id, type);
+  int get hashCode => Object.hash(id, type);
 
   @override
   String toString() {
@@ -584,7 +588,7 @@ class FakeHtmlPlatformView {
   }
 
   @override
-  int get hashCode => hashValues(id, type);
+  int get hashCode => Object.hash(id, type);
 
   @override
   String toString() {
